@@ -16,11 +16,11 @@ import { fetchLocationId, fetchWeather } from "./utils/api";
 import SearchInput from "./components/SearchInput";
 
 const App: React.FC = () => {
-  const [location, setLocation] = useState("Toronto");
-  const [temperature, setTemperature] = useState(0);
-  const [weather, setWeather] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [location, setLocation] = useState<string>("");
+  const [temperature, setTemperature] = useState<undefined | number>();
+  const [weather, setWeather] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
 
   const handleUpdateLocation = async (city: string) => {
     if (!city) return;
@@ -51,37 +51,42 @@ const App: React.FC = () => {
         source={getImageForWeather(weather)}
         style={styles.imageContainer}
         imageStyle={styles.image}
-      />
-      <View style={styles.detailsContainer}>
-        <ActivityIndicator animating={loading} color="white" size="large" />
-        {!loading && (
-          <View>
-            {error && (
-              <Text style={[styles.smallText, styles.textStyle]}>
-                Could not load weather, please try a different city.
-              </Text>
-            )}
-            {!error && (
-              <View>
-                <Text style={[styles.largeText, styles.textStyle]}>
-                  {location}
-                </Text>
+      >
+        <View style={styles.detailsContainer}>
+          <ActivityIndicator animating={loading} color="white" size="large" />
+          {!loading && (
+            <View>
+              {error && (
                 <Text style={[styles.smallText, styles.textStyle]}>
-                  {weather}
+                  Could not load weather, please try a different city.
                 </Text>
-                <Text style={[styles.largeText, styles.textStyle]}>
-                  {`${Math.round(temperature)}°`}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+              )}
+              {!error && (
+                <View>
+                  <Text style={[styles.largeText, styles.textStyle]}>
+                    {location}
+                  </Text>
+                  <Text style={[styles.smallText, styles.textStyle]}>
+                    {weather}
+                  </Text>
+                  <Text style={[styles.largeText, styles.textStyle]}>
+                    {temperature && typeof temperature === "number" ? (
+                      `${Math.round(temperature)}°`
+                    ) : (
+                      <View />
+                    )}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
 
-        <SearchInput
-          placeholder="Search any city"
-          onSubmit={handleUpdateLocation}
-        />
-      </View>
+          <SearchInput
+            placeholder="Search any city"
+            onSubmit={handleUpdateLocation}
+          />
+        </View>
+      </ImageBackground>
     </KeyboardAvoidingView>
   );
 };
@@ -116,6 +121,8 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     resizeMode: "cover",
+    width: "100%",
+    height: "100%",
   },
   detailsContainer: {
     flex: 1,
