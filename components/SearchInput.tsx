@@ -1,20 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 interface Props {
   placeholder: string;
+  onSubmit: Function;
 }
 
-const SearchInput: React.FC<Props> = (props) => {
+const SearchInput: React.FC<Props> = ({ onSubmit, placeholder }) => {
+  const [text, setText] = useState("");
+
+  const handleSubmitEditing = (): void => {
+    if (!text) return;
+    onSubmit(text);
+    setText("");
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
         autoCorrect={false}
-        placeholder={props.placeholder}
+        placeholder={placeholder}
         placeholderTextColor="white"
         style={styles.textInput}
         clearButtonMode="always"
         underlineColorAndroid="transparent"
+        value={text}
+        onChangeText={setText}
+        onSubmitEditing={handleSubmitEditing}
       />
     </View>
   );

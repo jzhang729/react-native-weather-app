@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,25 +6,81 @@ import {
   Platform,
   View,
   ImageBackground,
+  StatusBar,
+  ActivityIndicator,
 } from "react-native";
 
 import getImageForWeather from "./utils/getImageForWeather";
+import { fetchLocationId, fetchWeather } from "./utils/api";
 
 import SearchInput from "./components/SearchInput";
 
 const App: React.FC = () => {
+  const [location, setLocation] = useState("Toronto");
+  const [temperature, setTemperature] = useState(0);
+  const [weather, setWeather] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleUpdateLocation = async (city: string) => {
+    if (!city) return;
+    setLoading(true);
+
+    try {
+      const locationId = await fetchLocationId(city);
+      const {
+        location: locationData,
+        weather: weatherData,
+        temperature: temperatureData,
+      } = await fetchWeather(locationId);
+      setLoading(false);
+      setError(false);
+      setLocation(locationData);
+      setTemperature(temperatureData);
+      setWeather(weatherData);
+    } catch (e) {
+      setLoading(false);
+      setError(true);
+    }
+  };
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="height">
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <StatusBar barStyle="light-content" />
       <ImageBackground
-        source={getImageForWeather("Clear")}
+        source={getImageForWeather(weather)}
         style={styles.imageContainer}
         imageStyle={styles.image}
       />
       <View style={styles.detailsContainer}>
-        <Text style={[styles.largeText, styles.textStyle]}>San Francisco</Text>
-        <Text style={[styles.smallText, styles.textStyle]}>Light Cloud</Text>
-        <Text style={[styles.largeText, styles.textStyle]}>24 degrees</Text>
-        <SearchInput placeholder="Search any city" />
+        <ActivityIndicator animating={loading} color="white" size="large" />
+        {!loading && (
+          <View>
+            {error && (
+              <Text style={[styles.smallText, styles.textStyle]}>
+                Could not load weather, please try a different city.
+              </Text>
+            )}
+            {!error && (
+              <View>
+                <Text style={[styles.largeText, styles.textStyle]}>
+                  {location}
+                </Text>
+                <Text style={[styles.smallText, styles.textStyle]}>
+                  {weather}
+                </Text>
+                <Text style={[styles.largeText, styles.textStyle]}>
+                  {`${Math.round(temperature)}°`}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        <SearchInput
+          placeholder="Search any city"
+          onSubmit={handleUpdateLocation}
+        />
       </View>
     </KeyboardAvoidingView>
   );
